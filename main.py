@@ -112,14 +112,18 @@ class GameGld:
                 rabbit_ate += 1
             if self.cells[i] == 2:
                 tiger_ate += 1
+            self.cells[i] = 0
+
 
         if tiger_ate + rabbit_ate == 0:
             self.score += self.L
-        self.score += tiger_ate * self.W
+        else :
+            self.score += tiger_ate * self.W
 
 
 def optimalgaingld(N, K, W, L, CR, CT):
     pass
+    # V0 = 
 
 
 def play_gld(N, K, W, L, CR, CT):
