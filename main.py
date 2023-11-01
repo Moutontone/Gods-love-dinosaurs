@@ -121,9 +121,50 @@ class GameGld:
             self.score += tiger_ate * self.W
 
 
+def proba_reachable_states(state, action):
+    pass
+    return [[1,2]]
+    # tous les etats accessibles et la proba asocie
+
+def reward(state_start, action, state_end):
+    return 0
+
+def state_to_int(state_vec):
+    return 12
+
+def int_to_state_vec(i, N):
+    return [0 for _ in range(N)]
+
+def Value_iteration(N, K, W, L, CR, CT):
+    Etats = range(3**N)
+    Actions = [0,1,2,3,4]
+    pass
+    # init V
+    # V0 = [0,0, ..., 0]
+    Vn = [0 for _ in range(N)]
+    Vn1 = [0 for _ in range(N)]
+    d = [0 for _ in range(N)]
+    while(True):
+        Vn = Vn1 # attention
+        for e in Etats:
+            vmax = -1
+            amax = 0
+            for a in Actions:
+                v = 0
+                for s, ps in proba_reachable_states(e, a):
+                    v += ps*Vn[s] + ps*reward(e,a,s)
+                # v calcule
+                if v > vmax:
+                    vmax = v
+                    amax = a
+            # on a trouve le best a et le best v pour notre etat e
+            Vn1[e] = vmax
+            d[e] = amax
+        # on a trouve Vn1
+
 def optimalgaingld(N, K, W, L, CR, CT):
     pass
-    # V0 = 
+
 
 
 def play_gld(N, K, W, L, CR, CT):
