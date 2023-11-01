@@ -9,7 +9,7 @@ def main():
     """Main program"""
     # Code goes over here.
     N = 10
-    g = GameGld(N, 3, 100, -33, 15, 15)
+    g = GameGld(N, 3, 100, 33, 15, 15)
     print("game :")
     print(g)
     print(state_to_int(g.cells))
@@ -143,14 +143,96 @@ class GameGld:
         else :
             self.score += tiger_ate * self.W
 
+def activate_rabbit(state):
+    ind_rabbit = []
+    N = len(state)
+    for ind, c in enumerate(state):
+        if c == 1:
+            ind_rabbit.append(ind)
+    for ind in ind_rabbit:
+        if state[ind - 1] == 0:
+            state[ind - 1] = 1
+        if state[(ind + 1) % N] == 0:
+            state[(ind + 1) % N] = 1
+
+def activate_tiger(state):
+    ind_tiger = []
+    N = len(state)
+    for ind, c in enumerate(state):
+        if c == 2:
+            ind_tiger.append(ind)
+    for ind in ind_tiger:
+        state[ind] = 0
+        if state[(ind + 1) % N] == 1:
+            state[(ind + 1) % N] = 2
+        if state[(ind + 2) % N] == 1:
+            state[(ind + 2) % N] = 2
 
 def proba_reachable_states(state, action):
-    pass
-    return [[1,2]]
+    if action == 0:
+        # BR
+        ind_empty = []
+        for ind, c in enumerate(state):
+            if c == 0:
+                ind_empty.append(ind)
+        if not ind_empty:
+            return [(state, 1)]
+        else:
+            res = []
+            p = 1/ len(ind_empty)
+            for i in ind_empty:
+                s = [c for c in state]
+                s[i] = 1
+                res.append((s, p))
+            return res
+    if action == 1:
+        # BT 
+        pass
+    if action == 2:
+        # AR
+        s = [x for x in state]
+        s = activate_rabbit(s)
+        return [(s, 1)]
+    if action == 3:
+        # AT
+        s = [x for x in state]
+        s = activate_tiger(s)
+        return [(s, 1)]
+    if action == 4:
+        log.info(f"action AD")
+        # TODO
+        # ca fe reflechir
+        return 0
+    return [(1,2)]
     # tous les etats accessibles et la proba asocie
 
-def reward(state_start, action, state_end):
-    return 0
+def reward(state_start, action, state_end, N, K, W, L, CR, CT):
+        if action == 0:
+            # BR
+            return -CR
+        if action == 1:
+            # BT 
+            return -CT
+        if action == 2:
+            # AR
+            return 0
+        if action == 3:
+            # AR
+            return 0
+        if action == 4:
+            # AD
+            # count tiger and rabbit eaten
+            tiger_eaten = 0
+            rabbit_eaten = 0
+            for i,c in enumerate(state_start):
+                if c != 0 and state_end[i] == 0:
+                    if c == 1:
+                        rabbit_eaten += 1
+                    if c == 2:
+                        tiger_eaten += 1
+            if tiger_eaten + rabbit_eaten == 0:
+                return -L
+            return tiger_eaten * W
 
 def state_to_int(state_vec):
     res = 0
@@ -182,7 +264,7 @@ def Value_iteration(N, K, W, L, CR, CT):
             for a in Actions:
                 v = 0
                 for s, ps in proba_reachable_states(e, a):
-                    v += ps*Vn[s] + ps*reward(e,a,s)
+                    v += ps*Vn[s] + ps*reward(e,a,s, N, K, W, L, CR, CT)
                 # v calcule
                 if v > vmax:
                     vmax = v
