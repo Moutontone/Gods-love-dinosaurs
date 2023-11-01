@@ -8,7 +8,30 @@ import logging as log
 def main():
     """Main program"""
     # Code goes over here.
-    # g = GameGld(10, 3, 100, -33, 15, 15)
+    N = 10
+    g = GameGld(N, 3, 100, -33, 15, 15)
+    print("game :")
+    print(g)
+    print(state_to_int(g.cells))
+    print(int_to_state_vec(state_to_int(g.cells),N))
+    g.rdm_action()
+    g.rdm_action()
+    g.rdm_action()
+    g.rdm_action()
+    print("game :")
+    print(g)
+    print(state_to_int(g.cells))
+    print(int_to_state_vec(state_to_int(g.cells),N))
+    g.rdm_action()
+    g.rdm_action()
+    g.rdm_action()
+    g.rdm_action()
+    print("game :")
+    print(g)
+    print(state_to_int(g.cells))
+    print(int_to_state_vec(state_to_int(g.cells),N))
+
+
     games = [GameGld(10, 3, 100, -33, 15, 15) for _ in range(50)]
     log.basicConfig(level=log.DEBUG)
     for _ in range(100):
@@ -130,10 +153,17 @@ def reward(state_start, action, state_end):
     return 0
 
 def state_to_int(state_vec):
-    return 12
+    res = 0
+    for i,v in enumerate(state_vec):
+        res += 3**i * v 
+    return res
 
-def int_to_state_vec(i, N):
-    return [0 for _ in range(N)]
+def int_to_state_vec(v, N):
+    res = [0 for _ in range(N)]
+    for i in range(N):
+        res[i] = v%3 
+        v = (v - v%3)//3
+    return res
 
 def Value_iteration(N, K, W, L, CR, CT):
     Etats = range(3**N)
