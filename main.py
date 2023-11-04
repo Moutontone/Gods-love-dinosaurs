@@ -186,10 +186,23 @@ def proba_reachable_states(state, action):
                 s = [c for c in state]
                 s[i] = 1
                 res.append((s, p))
-            return res
+            return res    # On retourne une liste de tous les states atteignables avec BR avec leur proba associéee
     if action == 1:
-        # BT 
-        pass
+        # BT
+        ind_empty = []
+        for ind, c in enumerate(state):
+            if c == 0:
+                ind_empty.append(ind)
+        if not ind_empty:
+            return [(state, 1)]
+        else:
+            res = []
+            p = 1/ len(ind_empty)
+            for i in ind_empty:
+                s = [c for c in state]
+                s[i] = 2
+                res.append((s, p))
+            return res   # On retourne une liste de tous les states atteignables avec BR avec leur proba associéee
     if action == 2:
         # AR
         s = [x for x in state]
