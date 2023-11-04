@@ -169,8 +169,25 @@ def activate_tiger(state):
             state[(ind + 1) % N] = 2
         if state[(ind + 2) % N] == 1:
             state[(ind + 2) % N] = 2
+            
+def combinliste(seq, k): #Renvoie les k-uplets possibles des éléments d'une liste d'éléments 'seq'
+    p = []
+    i, imax = 0, 2**len(seq)-1
+    while i<=imax:
+        s = []
+        j, jmax = 0, len(seq)-1
+        while j<=jmax:
+            if (i>>j)&1==1:
+                s.append(seq[j])
+            j += 1
+        if len(s)==k:
+            p.append(s)
+        i += 1 
+    return p            
+            
 
-def proba_reachable_states(state, action):
+
+def proba_reachable_states(state, action, K):
     if action == 0:
         # BR
         ind_empty = []
@@ -215,10 +232,15 @@ def proba_reachable_states(state, action):
         return [(s, 1)]
     if action == 4:
         log.info(f"action AD")
-        # TODO
-        # ca fe reflechir
-        return 0
-    return [(1,2)]
+        dino_summon_possibles=combinliste(range(len(state)), K)      #On liste tous les K-uplets de cases qui peuvent être bouffés
+        res=[]
+        p=1/len(dino_summon_possibles)
+        for i in range(len(dino_summon_possibles)):                      #On construit chaque nouveau state
+            s = [c for c in state]
+            for j in dino_summon_possibles[i]:
+                s[j] = 0
+            res.append((s,p))                                       #On ajoute le state créé et la proba associée
+        return res
     # tous les etats accessibles et la proba asocie
 
 def reward(state_start, action, state_end, N, K, W, L, CR, CT):
@@ -300,3 +322,7 @@ def play_gld(N, K, W, L, CR, CT):
 
 if __name__ == "__main__":
     main()
+
+s=[0,1,1,2,1,0]
+
+print(proba_reachable_states(s, 4, 3))
