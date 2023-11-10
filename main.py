@@ -10,39 +10,14 @@ import logging as log
 def main():
     """Main program"""
     # Code goes over here.
-    N = 10
-    g = GameGld(N, 3, 100, 33, 15, 15)
-    print("game :")
-    print(g)
-    print(state_to_int(g.cells))
-    print(int_to_state_vec(state_to_int(g.cells),N))
-    g.rdm_action()
-    g.rdm_action()
-    g.rdm_action()
-    g.rdm_action()
-    print("game :")
-    print(g)
-    print(state_to_int(g.cells))
-    print(int_to_state_vec(state_to_int(g.cells),N))
-    g.rdm_action()
-    g.rdm_action()
-    g.rdm_action()
-    g.rdm_action()
-    print("game :")
-    print(g)
-    print(state_to_int(g.cells))
-    print(int_to_state_vec(state_to_int(g.cells),N))
-
-
-    games = [GameGld(10, 3, 100, -33, 15, 15) for _ in range(50)]
-    log.basicConfig(level=log.DEBUG)
-    for _ in range(100):
-        for g in games:
-            g.rdm_action()
-    scores = [g.score for g in games]
-    log.info(f"scores: {scores}")
-    log.info(f"moy scores: {sum(scores)/len(scores)}")
-
+    log.basicConfig(level=log.WARNING)
+    log.info(f"info")
+    log.warning(f"warning")
+    N = 4
+    g = GameGld(N, 1, 100, 33, 15, 15)
+    # V = Value_iteration(N, 1, 100, 33, 15, 15)
+    V = Value_iteration(N, 1, 10, 33, 40, 40)
+    print(f"end of Value_iteration V = {V}")
 
     return 0
 
@@ -156,6 +131,7 @@ def activate_rabbit(state):
             state[ind - 1] = 1
         if state[(ind + 1) % N] == 0:
             state[(ind + 1) % N] = 1
+    return state
 
 def activate_tiger(state):
     ind_tiger = []
@@ -169,6 +145,7 @@ def activate_tiger(state):
             state[(ind + 1) % N] = 2
         if state[(ind + 2) % N] == 1:
             state[(ind + 2) % N] = 2
+    return state
             
 def combinliste(seq, k): #Renvoie les k-uplets possibles des éléments d'une liste d'éléments 'seq'
     p = []
@@ -222,16 +199,16 @@ def proba_reachable_states(state, action, K):
             return res   # On retourne une liste de tous les states atteignables avec BR avec leur proba associéee
     if action == 2:
         # AR
-        s = [x for x in state]
-        s = activate_rabbit(s)
+        # s = [x for x in state]
+        s = activate_rabbit(state)
         return [(s, 1)]
     if action == 3:
         # AT
-        s = [x for x in state]
-        s = activate_tiger(s)
+        # s = [x for x in state]
+        s = activate_tiger(state)
         return [(s, 1)]
     if action == 4:
-        log.info(f"action AD")
+        log.info(f"AD")
         dino_summon_possibles=combinliste(range(len(state)), K)      #On liste tous les K-uplets de cases qui peuvent être bouffés
         res=[]
         p=1/len(dino_summon_possibles)
@@ -240,7 +217,12 @@ def proba_reachable_states(state, action, K):
             for j in dino_summon_possibles[i]:
                 s[j] = 0
             res.append((s,p))                                       #On ajoute le state créé et la proba associée
+        log.info(f"res : {res}")
         return res
+    # should not be acces
+    print("OLALA GROS PB")
+    return [(state, 1)]
+
     # tous les etats accessibles et la proba asocie
 
 def reward(state_start, action, state_end, N, K, W, L, CR, CT):
@@ -270,6 +252,7 @@ def reward(state_start, action, state_end, N, K, W, L, CR, CT):
             if tiger_eaten + rabbit_eaten == 0:
                 return -L
             return tiger_eaten * W
+        return -99999
 
 def state_to_int(state_vec):
     res = 0
@@ -290,26 +273,51 @@ def Value_iteration(N, K, W, L, CR, CT):
     pass
     # init V
     # V0 = [0,0, ..., 0]
-    Vn = [0 for _ in range(N)]
-    Vn1 = [0 for _ in range(N)]
-    d = [0 for _ in range(N)]
-    while(True):
-        Vn = Vn1 # attention
+    Vn = [0. for _ in range(len(Etats))]
+    Vn1 = [0. for _ in range(len(Etats))]
+    d = [0 for _ in range(len(Etats))]
+    iter = 0
+    while(iter < 100):
+        d_diff = 0
+        log.warning(f"-------------------")
+        log.warning(f"loop iter: {iter}")
+        diff = [abs(Vn1[i] - Vn[i]) for i in range(len(Vn))]
+        # log.warning(f"Vn1 - Vn: {diff}")
+        log.warning(f"span(Vn): {max(Vn) - min(Vn)}")
+        iter += 1
+        Vn = [x for x in Vn1]
+        log.info(f"Vn: {Vn}")
         for e in Etats:
+            log.info(f"for loop e: {e}")
+            log.info(f"-> {int_to_state_vec(e, N)}")
             vmax = -1
             amax = 0
             for a in Actions:
+                log.info(f"for loop a: {a}")
                 v = 0
-                for s, ps in proba_reachable_states(e, a):
-                    v += ps*Vn[s] + ps*reward(e,a,s, N, K, W, L, CR, CT)
+                for s, ps in proba_reachable_states(int_to_state_vec(e, N), a, K):
+                    log.info(f"for loop s: {s}, ps: {ps}")
+                    v += ps*reward(int_to_state_vec(e, N),a,s, N, K, W, L, CR, CT)
+                    v += .5*Vn[e] + .5*ps*Vn[state_to_int(s)] 
                 # v calcule
+                log.info(f"v: {v}")
                 if v > vmax:
                     vmax = v
                     amax = a
+            log.info(f"vmax: {vmax}")
             # on a trouve le best a et le best v pour notre etat e
             Vn1[e] = vmax
+            if d[e] !=amax:
+                d_diff += 1
             d[e] = amax
+        log.warning(f"Vn1: {Vn1}")
+        log.warning(f"d_diff: {d_diff}")
+
         # on a trouve Vn1
+    log.warning(f"Last Vn1:")
+    for v in Vn1:
+        log.warning(f"{v}")
+    return Vn1
 
 def optimalgaingld(N, K, W, L, CR, CT):
     pass
@@ -322,7 +330,3 @@ def play_gld(N, K, W, L, CR, CT):
 
 if __name__ == "__main__":
     main()
-
-s=[0,1,1,2,1,0]
-
-print(proba_reachable_states(s, 4, 3))
