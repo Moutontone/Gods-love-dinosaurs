@@ -13,11 +13,13 @@ def main():
     log.basicConfig(level=log.WARNING)
     log.info(f"info")
     log.warning(f"warning")
-    N = 4
+    N = 5
     g = GameGld(N, 1, 100, 33, 15, 15)
-    # V = Value_iteration(N, 1, 100, 33, 15, 15)
-    V = Value_iteration(N, 1, 10, 33, 40, 40)
+    Game = Value_iteration(N, 2, 100, 33, 15, 15)
+    V = Game[0]     #affichage de la value iteration finale
+    d = Game[1]     #affichage de la policy iteration finale
     print(f"end of Value_iteration V = {V}")
+    print(f"end of Value_iteration d = {d}")
 
     return 0
 
@@ -298,7 +300,7 @@ def Value_iteration(N, K, W, L, CR, CT):
                 for s, ps in proba_reachable_states(int_to_state_vec(e, N), a, K):
                     log.info(f"for loop s: {s}, ps: {ps}")
                     v += ps*reward(int_to_state_vec(e, N),a,s, N, K, W, L, CR, CT)
-                    v += .5*Vn[e] + .5*ps*Vn[state_to_int(s)] 
+                    v += ps*Vn[state_to_int(s)] 
                 # v calcule
                 log.info(f"v: {v}")
                 if v > vmax:
@@ -317,7 +319,7 @@ def Value_iteration(N, K, W, L, CR, CT):
     log.warning(f"Last Vn1:")
     for v in Vn1:
         log.warning(f"{v}")
-    return Vn1
+    return Vn1, d
 
 def optimalgaingld(N, K, W, L, CR, CT):
     pass
