@@ -279,11 +279,10 @@ def Value_iteration(N, K, W, L, CR, CT):
     Vn1 = [0. for _ in range(len(Etats))]
     d = [0 for _ in range(len(Etats))]
     iter = 0
-    while(iter < 100):
+    while(iter < 20):
         d_diff = 0
         log.warning(f"-------------------")
         log.warning(f"loop iter: {iter}")
-        diff = [abs(Vn1[i] - Vn[i]) for i in range(len(Vn))]
         # log.warning(f"Vn1 - Vn: {diff}")
         log.warning(f"span(Vn): {max(Vn) - min(Vn)}")
         iter += 1
@@ -300,7 +299,8 @@ def Value_iteration(N, K, W, L, CR, CT):
                 for s, ps in proba_reachable_states(int_to_state_vec(e, N), a, K):
                     log.info(f"for loop s: {s}, ps: {ps}")
                     v += ps*reward(int_to_state_vec(e, N),a,s, N, K, W, L, CR, CT)
-                    v += ps*Vn[state_to_int(s)] 
+                    v += .5 * ps*Vn[state_to_int(s)] 
+                v += .5 * Vn[e]
                 # v calcule
                 log.info(f"v: {v}")
                 if v > vmax:
@@ -312,13 +312,10 @@ def Value_iteration(N, K, W, L, CR, CT):
             if d[e] !=amax:
                 d_diff += 1
             d[e] = amax
-        log.warning(f"Vn1: {Vn1}")
         log.warning(f"d_diff: {d_diff}")
+        log.warning(f"g in loop : {Vn1[0] - Vn[0]}")
 
         # on a trouve Vn1
-    log.warning(f"Last Vn1:")
-    for v in Vn1:
-        log.warning(f"{v}")
     return Vn1, d
 
 def optimalgaingld(N, K, W, L, CR, CT):
