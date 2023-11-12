@@ -314,8 +314,9 @@ class AskInput():
 
     def read_input(self):
         print("-- Action selection -- ")
+        print("action h for help")
         action = input("Action choice: ")
-        action.lower()
+        action = action.lower()
         while(True): 
             if action == "q":
                 return -1
@@ -334,7 +335,7 @@ class AskInput():
             if action == "h":
                 print_action_liste()
             action = input("wrong input... Action choice: ")
-            action.lower()
+            action = action.lower()
   
 ################################
 #### Class to play the game ####
