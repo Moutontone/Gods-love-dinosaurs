@@ -23,16 +23,18 @@ def main():
 
     # set parameters
     N = 5
-    N  = 1
     K  = 2
     W  = 25
     L  = 100
     CR = 15
-    CT = 10
+    CT = 100
 
-    # compute optimal gain g
-    g = optimalgaingld(N, K, W, L, CR, CT)
-    print(f"The optimal gain g is {g}")
+    print(f"Computing the optimal gain")
+    g, d = optimalgaingld(N, K, W, L, CR, CT)
+    print(f"The optimal gain is \n\tg = {g}")
+    print()
+
+    play_gld(d, N, K, W, L, CR, CT)
 
     return 0
 
@@ -66,26 +68,27 @@ class GameGld:
         self.CT = CT
         self.cells = [0 for _ in range(N)]
 
+    def get_state_int(self):
+        return state_to_int(self.cells)
+
     def __str__(self) -> str:
         return f"cells: {self.cells}\nscore: {self.score}"
 
-    def rdm_action(self):
-        a = rdm.choice([i for i in range(5)])
+    def play_action(self, a):
         if a == 0:
-            log.info(f"action BR")
             self.birth_rabbit()
         if a == 1:
-            log.info(f"action BT")
             self.birth_tiger()
         if a == 2:
-            log.info(f"action AR")
             self.activate_rabbit()
         if a == 3:
-            log.info(f"action AT")
             self.activate_tiger()
         if a == 4:
-            log.info(f"action AD")
             self.activate_dinosaur()
+
+    def rdm_action(self):
+        a = rdm.choice([i for i in range(5)])
+        self.play_action(a)
 
     def birth_rabbit(self):
         self.score -= self.CR
@@ -349,15 +352,77 @@ def Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT):
 def optimalgaingld(N, K, W, L, CR, CT):
     epsilon = .1
     max_iteration = 1000
-    g, _ = Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT)
-    return g
+    g, d = Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT)
+    return g, d
 
 
 
-def play_gld(N, K, W, L, CR, CT):
-    pass
 
+class AskInput():
+    def __init__(self) -> None:
+        self.best_action = -1
 
+    def set_best(self, best):
+        self.best_action = best
+
+    def ask_input(self):
+        a = self.read_input()
+        self.best_action = a
+        return a
+
+    def read_input(self):
+        print("-- Action selection -- ")
+        action = input("Action choice: ")
+        action.lower()
+        while(True): 
+            if action == "q":
+                return -1
+            if action == "br":
+                return 0
+            if action == "bt":
+                return 1
+            if action == "ar":
+                return 2
+            if action == "at":
+                return 3
+            if action == "ad":
+                return 4
+            if action == "" and self.best_action >= 0:
+                return self.best_action
+            if action == "h":
+                print_action_liste()
+            action = input("wrong input... Action choice: ")
+            action.lower()
+
+def print_action_liste():
+    print("| To play the game you have acces to the following action:")
+    print("| -{br, bt, ar, at, ad} to play the corresponding action")
+    print("| -q to quite the game")
+    print("| -h to print the action liste")
+    print("| -tape <Enter> to play the optimal action (if no helper set it will repeat the last action played)")
+
+def play_gld(decision_helper, N, K, W, L, CR, CT):
+    game = GameGld(N, K, W, L, CR, CT)
+    asker = AskInput()
+    print_action_liste()
+    is_going = True
+    turn_counter = 0
+    while(is_going):
+        print()
+        print(f"====================")
+        print(f"turn: {turn_counter}")
+        turn_counter += 1
+        print(game)
+        if decision_helper is not None:
+            state = game.get_state_int()
+            best_action = decision_helper[state]
+            print(f"the optimal action is {action_to_str(best_action)}")
+            asker.set_best(best_action)
+        action = asker.ask_input()
+        if action == -1:
+            is_going = False
+        else:
+            game.play_action(action)
 
 if __name__ == "__main__":
     main()
