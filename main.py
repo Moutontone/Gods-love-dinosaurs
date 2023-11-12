@@ -51,11 +51,12 @@ def play_gld(decision_helper, N, K, W, L, CR, CT):
     is_going = True
     turn_counter = 0
     while(is_going):
+        turn_counter += 1
         print()
         print(f"====================")
         print(f"turn: {turn_counter}")
-        turn_counter += 1
         print(game)
+        print(f"score per turn: {game.score / turn_counter}")
         if decision_helper is not None:
             state = game.get_state_int()
             best_action = decision_helper[state]
