@@ -18,8 +18,8 @@ def main():
     Game = Value_iteration(N, 2, 100, 33, 15, 15)
     V = Game[0]     #affichage de la value iteration finale
     d = Game[1]     #affichage de la policy iteration finale
-    print(f"end of Value_iteration V = {V}")
-    print(f"end of Value_iteration d = {d}")
+    # print(f"end of Value_iteration V = {V}")
+    # print(f"end of Value_iteration d = {d}")
 
     return 0
 
@@ -279,12 +279,13 @@ def Value_iteration(N, K, W, L, CR, CT):
     Vn1 = [0. for _ in range(len(Etats))]
     d = [0 for _ in range(len(Etats))]
     iter = 0
-    while(iter < 20):
-        d_diff = 0
+    d_diff = 0
+    while(iter < 200):
         log.warning(f"-------------------")
         log.warning(f"loop iter: {iter}")
         # log.warning(f"Vn1 - Vn: {diff}")
-        log.warning(f"span(Vn): {max(Vn) - min(Vn)}")
+        Vdif = [v1 - v for v1,v in  zip(Vn1, Vn)]
+        log.warning(f"span(Vn1): {max(Vdif) - min(Vdif)}")
         iter += 1
         Vn = [x for x in Vn1]
         log.info(f"Vn: {Vn}")
