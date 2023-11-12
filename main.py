@@ -9,20 +9,46 @@ import logging as log
 
 def main():
     """Main program"""
-    # Code goes over here.
-    log.basicConfig(level=log.WARNING)
-    log.info(f"info")
-    log.warning(f"warning")
+
+    """ log level: 
+    - Critical: only shows call to Value_iteration
+    - Error: shows span and nb_decision_update per iteration in Value_iteration
+    - Warning: shows max_value for every state in V
+    - Info: shows value for every action
+    - Debug: shows every states reachable and their probability
+
+    -- Be careful when using a log level lower than Error
+    This prints a lots of log and slows down the application !!!"""
+    log.basicConfig(level=log.CRITICAL, filemode='w', filename="GLD.log")
+
+    # set parameters
     N = 5
-    g = GameGld(N, 1, 100, 33, 15, 15)
-    Game = Value_iteration(N, 2, 100, 33, 15, 15)
-    V = Game[0]     #affichage de la value iteration finale
-    d = Game[1]     #affichage de la policy iteration finale
-    # print(f"end of Value_iteration V = {V}")
-    # print(f"end of Value_iteration d = {d}")
+    N  = 1
+    K  = 2
+    W  = 25
+    L  = 100
+    CR = 15
+    CT = 10
+
+    # compute optimal gain g
+    g = optimalgaingld(N, K, W, L, CR, CT)
+    print(f"The optimal gain g is {g}")
 
     return 0
 
+
+def action_to_str(a):
+        if a == 0:
+           return "BR"
+        if a == 1:
+           return "BT"
+        if a == 2:
+           return "AR"
+        if a == 3:
+           return "AT"
+        if a == 4:
+           return "AD"
+        return "unknow"
 
 class GameGld:
     # 0: empty cell
@@ -210,7 +236,6 @@ def proba_reachable_states(state, action, K):
         s = activate_tiger(state)
         return [(s, 1)]
     if action == 4:
-        log.info(f"AD")
         dino_summon_possibles=combinliste(range(len(state)), K)      #On liste tous les K-uplets de cases qui peuvent être bouffés
         res=[]
         p=1/len(dino_summon_possibles)
@@ -219,7 +244,6 @@ def proba_reachable_states(state, action, K):
             for j in dino_summon_possibles[i]:
                 s[j] = 0
             res.append((s,p))                                       #On ajoute le state créé et la proba associée
-        log.info(f"res : {res}")
         return res
     # should not be acces
     print("OLALA GROS PB")
@@ -269,63 +293,70 @@ def int_to_state_vec(v, N):
         v = (v - v%3)//3
     return res
 
-def Value_iteration(N, K, W, L, CR, CT):
+def Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT):
+    log.critical(f"starting Value_iteration epsilon: {epsilon}, max_iteration {max_iteration}")
     Etats = range(3**N)
-    Actions = [0,1,2,3,4]
-    pass
-    # init V
-    # V0 = [0,0, ..., 0]
+    Actions = [0, 1, 2, 3, 4]
+    # initialise Vn, Vn+1, decision
     Vn = [0. for _ in range(len(Etats))]
     Vn1 = [0. for _ in range(len(Etats))]
-    d = [0 for _ in range(len(Etats))]
+    decision = [0 for _ in range(len(Etats))]
     iter = 0
-    d_diff = 0
-    while(iter < 200):
-        log.warning(f"-------------------")
-        log.warning(f"loop iter: {iter}")
-        # log.warning(f"Vn1 - Vn: {diff}")
-        Vdif = [v1 - v for v1,v in  zip(Vn1, Vn)]
-        log.warning(f"span(Vn1): {max(Vdif) - min(Vdif)}")
+    span = epsilon + 1
+    while(iter < max_iteration and span > epsilon):
+        log.error(f"\t\t--------------------- loop: {iter} ---------------------")
         iter += 1
+        nb_decisions_update = 0
+        # Vn <- Vn1
         Vn = [x for x in Vn1]
-        log.info(f"Vn: {Vn}")
         for e in Etats:
-            log.info(f"for loop e: {e}")
-            log.info(f"-> {int_to_state_vec(e, N)}")
-            vmax = -1
-            amax = 0
+            log.warning(f"\t--- loop on state e: {e} -> {int_to_state_vec(e, N)}")
+            value_max = -1
+            action_max = 0
             for a in Actions:
-                log.info(f"for loop a: {a}")
-                v = 0
-                for s, ps in proba_reachable_states(int_to_state_vec(e, N), a, K):
-                    log.info(f"for loop s: {s}, ps: {ps}")
-                    v += ps*reward(int_to_state_vec(e, N),a,s, N, K, W, L, CR, CT)
-                    v += .5 * ps*Vn[state_to_int(s)] 
-                v += .5 * Vn[e]
-                # v calcule
-                log.info(f"v: {v}")
-                if v > vmax:
-                    vmax = v
-                    amax = a
-            log.info(f"vmax: {vmax}")
-            # on a trouve le best a et le best v pour notre etat e
-            Vn1[e] = vmax
-            if d[e] !=amax:
-                d_diff += 1
-            d[e] = amax
-        log.warning(f"d_diff: {d_diff}")
-        log.warning(f"g in loop : {Vn1[0] - Vn[0]}")
-
-        # on a trouve Vn1
-    return Vn1, d
+                log.info(f"\t\t--- --- loop on action: {action_to_str(a)}")
+                value = 0
+                for state, proba_state in proba_reachable_states(int_to_state_vec(e, N), a, K):
+                    log.debug(f"\t\t--- --- --- loop on reachable state: {state}, with probability: {proba_state}")
+                    value += proba_state*reward(int_to_state_vec(e, N),a,state, N, K, W, L, CR, CT)
+                    value += .5 * proba_state*Vn[state_to_int(state)] 
+                value += .5 * Vn[e]
+                log.info(f"\t\t--- --- value: {value}")
+                # update max if needed
+                if value > value_max:
+                    value_max = value
+                    action_max = a
+            log.warning(f"\t--- value_max: {value_max}")
+            # update Vn1 and d with max
+            Vn1[e] = value_max
+            if decision[e] != action_max:
+                nb_decisions_update += 1
+                decision[e] = action_max
+        log.error(f"\t\tnb_decisions_update: {nb_decisions_update}")
+        # update stop condition
+        Vdif = [v1 - v for v1,v in  zip(Vn1, Vn)]
+        span = max(Vdif) - min(Vdif)
+        log.error(f"\t\tspan: {span}")
+        # end of while 
+    if iter >= max_iteration:
+        log.critical(f"max_iteration stop condition reached")
+    log.critical(f"end of Value_iteration")
+    # compute g
+    Vdif = [v1 - v for v1,v in  zip(Vn1, Vn)]
+    g = sum(Vdif)/len(Vdif)
+    return g, decision
 
 def optimalgaingld(N, K, W, L, CR, CT):
-    pass
+    epsilon = .1
+    max_iteration = 1000
+    g, _ = Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT)
+    return g
 
 
 
 def play_gld(N, K, W, L, CR, CT):
     pass
+
 
 
 if __name__ == "__main__":
