@@ -23,7 +23,7 @@ def main():
 
     # set parameters
     # be sure to set K < N or it will cause errors
-    N = 5
+    N = 6
     K  = 2
     W  = 25
     L  = 100
@@ -80,12 +80,12 @@ def optimalgaingld(N, K, W, L, CR, CT):
 
 def Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT):
     log.critical(f"starting Value_iteration epsilon: {epsilon}, max_iteration {max_iteration}")
-    Etats = [int_to_state_vec(i, N) for i in range(3**N)]
+    States = [int_to_state_vec(i, N) for i in range(3**N)]
     Actions = [0, 1, 2, 3, 4]
     # initialize Vn, Vn+1, decision
-    Vn = [0. for _ in range(len(Etats))]
-    Vn1 = [0. for _ in range(len(Etats))]
-    decision = [0 for _ in range(len(Etats))]
+    Vn = [0. for _ in range(len(States))]
+    Vn1 = [0. for _ in range(len(States))]
+    decision = [0 for _ in range(len(States))]
     iter = 0
     span = epsilon + 1
     while(iter < max_iteration and span > epsilon):
@@ -94,7 +94,7 @@ def Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT):
         nb_decisions_update = 0
         # Vn <- Vn1
         Vn = [x for x in Vn1]
-        for ind, e in enumerate(Etats):
+        for ind, e in enumerate(States):
             log.warning(f"\t--- loop on state e: {ind} -> {int_to_state_vec(ind, N)}")
             value_max = -1
             action_max = 0
