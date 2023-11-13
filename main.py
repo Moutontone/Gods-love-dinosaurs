@@ -23,7 +23,7 @@ def main():
 
     # set parameters
     # be sure to set K < N or it will cause errors
-    N = 6
+    N = 7
     K  = 3
     W  = 25
     L  = 100
@@ -35,7 +35,7 @@ def main():
     print(f"The optimal gain is \n\tg = {g}")
     print()
 
-    # play_gld(d, N, K, W, L, CR, CT)
+    play_gld(d, N, K, W, L, CR, CT)
 
     return 0
 
