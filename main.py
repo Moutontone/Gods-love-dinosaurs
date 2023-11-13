@@ -23,8 +23,8 @@ def main():
 
     # set parameters
     # be sure to set K < N or it will cause errors
-    N = 5
-    K  = 2
+    N = 6
+    K  = 3
     W  = 25
     L  = 100
     CR = 15
@@ -35,7 +35,7 @@ def main():
     print(f"The optimal gain is \n\tg = {g}")
     print()
 
-    play_gld(d, N, K, W, L, CR, CT)
+    # play_gld(d, N, K, W, L, CR, CT)
 
     return 0
 
@@ -80,7 +80,7 @@ def optimalgaingld(N, K, W, L, CR, CT):
 
 def Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT):
     log.critical(f"starting Value_iteration epsilon: {epsilon}, max_iteration {max_iteration}")
-    Etats = range(3**N)
+    Etats = [int_to_state_vec(i, N) for i in range(3**N)]
     Actions = [0, 1, 2, 3, 4]
     # initialize Vn, Vn+1, decision
     Vn = [0. for _ in range(len(Etats))]
@@ -94,18 +94,18 @@ def Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT):
         nb_decisions_update = 0
         # Vn <- Vn1
         Vn = [x for x in Vn1]
-        for e in Etats:
-            log.warning(f"\t--- loop on state e: {e} -> {int_to_state_vec(e, N)}")
+        for ind, e in enumerate(Etats):
+            log.warning(f"\t--- loop on state e: {ind} -> {e}")
             value_max = -1
             action_max = 0
             for a in Actions:
                 log.info(f"\t\t--- --- loop on action: {action_to_str(a)}")
                 value = 0
-                for state, proba_state in proba_reachable_states(int_to_state_vec(e, N), a, K):
+                for state, proba_state in proba_reachable_states(e, a, K):
                     log.debug(f"\t\t--- --- --- loop on reachable state: {state}, with probability: {proba_state}")
-                    value += proba_state*reward(int_to_state_vec(e, N),a,state, W, L, CR, CT)
+                    value += proba_state*reward(e ,a,state, W, L, CR, CT)
                     value += .5 * proba_state*Vn[state_to_int(state)] 
-                value += .5 * Vn[e]
+                value += .5 * Vn[ind]
                 log.info(f"\t\t--- --- value: {value}")
                 # update max if needed
                 if value > value_max:
@@ -113,10 +113,10 @@ def Value_iteration(epsilon, max_iteration, N, K, W, L, CR, CT):
                     action_max = a
             log.warning(f"\t--- value_max: {value_max}")
             # update Vn1 and d with max
-            Vn1[e] = value_max
-            if decision[e] != action_max:
+            Vn1[ind] = value_max
+            if decision[ind] != action_max:
                 nb_decisions_update += 1
-                decision[e] = action_max
+                decision[ind] = action_max
         log.error(f"\t\tnb_decisions_update: {nb_decisions_update}")
         # update stop condition
         Vdif = [v1 - v for v1,v in  zip(Vn1, Vn)]
